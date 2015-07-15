@@ -20,6 +20,13 @@ public class JoopzIncomingMessageService implements Runnable {
 
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        while(true) {
+            try {
+                log.info("Sleeping for 3 seconds...");
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
