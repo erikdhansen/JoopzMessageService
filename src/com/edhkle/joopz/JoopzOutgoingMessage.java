@@ -35,9 +35,9 @@ public class JoopzOutgoingMessage {
         json = JsonUtils.getJsonReader(jsonEncoded);    
         
         JsonObject obj = json.readObject();
-        contactId = obj.getString("contact_id");
+        contactId = String.valueOf(obj.getInt("contact_id"));
         // groupId = (obj.getString("group_id") == null) ? "" : obj.getString("group_id");
-        userId = obj.getString("user_id");
+        userId = String.valueOf(obj.getInt("user_id"));
         message = obj.getString("message");
     }
 

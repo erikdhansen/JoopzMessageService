@@ -22,8 +22,8 @@ public class JoopzIncomingMessageService implements Runnable {
     public void run() {
         while(true) {
             try {
-                log.info("Sleeping for 3 seconds...");
-                Thread.sleep(3000);
+                log.info("Sleeping for 10 seconds...");
+                Thread.sleep(10000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

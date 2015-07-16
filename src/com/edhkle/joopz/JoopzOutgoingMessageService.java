@@ -65,7 +65,8 @@ public class JoopzOutgoingMessageService implements Runnable {
                     String value = queueInfo.get(i);
                     JoopzOutgoingMessage msg = new JoopzOutgoingMessage(value);
                     log.info("Pulled JoopzOutgoingMessage from queue".concat(queueName));
-                    log.info("Msg: ".concat(msg.toString()).concat("\n"));    
+                    log.info("Msg: ".concat(msg.toString()).concat("\n"));
+                    emailService.sendEmail(msg);
                 } catch (Exception e) {
                     log.log(Level.SEVERE, "Caught Exception: " + e.getClass().getSimpleName(), e);
                     log.info("Resume listening.");

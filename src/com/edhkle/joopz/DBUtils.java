@@ -13,6 +13,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.http.HttpResponse;
@@ -30,7 +32,26 @@ public class DBUtils {
     final static String LNP_URL = "http://lrn.joopz.com/get.carrier.php?tn=";
     final static String NO_LNP_URL = "http://199.232.41.206/getcarrier.php?p=";
     
-    public String getUserPhoneNumber(String userId) throws SQLException {
+    final static Map<String,Integer> cMap = new HashMap<>();
+    static {
+        cMap.put("verizon", 1);
+        cMap.put("sprint", 2);
+        cMap.put("cingular", 3);
+        cMap.put("at&t", 3);
+        cMap.put("att", 3);
+        cMap.put("uscc", 4);
+        cMap.put("alltel", 5);
+        cMap.put("t-mobile", 7);
+        cMap.put("tmobile", 7);
+        cMap.put("cellularone", 9);
+        cMap.put("cellular one", 9);
+        cMap.put("cricket", 11);
+        cMap.put("century", 12);
+        cMap.put("metro", 15);
+        cMap.put("boost", 19);
+    }
+    
+    public static String getUserPhoneNumber(String userId) throws SQLException {
         Connection c = getConnection();
         Statement st = c.createStatement();
         String phoneNumber = "";
@@ -46,11 +67,11 @@ public class DBUtils {
         return phoneNumber;
     }
     
-    public String getContactUniqueId(String contactId) throws SQLException {
+    public static String getContactUniqueId(String contactId) throws SQLException {
         String uniqueId = "";
         Connection c = getConnection();
         Statement st = c.createStatement();
-        ResultSet rs = st.executeQuery("SELECT unique_id FROM contacts WHERE id=" + contactId);
+        ResultSet rs = st.executeQuery("SELECT uniq_id FROM contacts WHERE id=" + contactId);
         if(rs.next()) {
             uniqueId = rs.getString(1);
         }
@@ -62,11 +83,11 @@ public class DBUtils {
         return uniqueId;
     }
     
-    public String getPartnerDomainForUser(String userId) throws SQLException {
+    public static String getPartnerDomainForUser(String userId) throws SQLException {
         String domain = "";
         Connection c = getConnection();
         Statement st = c.createStatement();
-        ResultSet rs = st.executeQuery("SELECT domain FROM partners WHERE id=(SELECT partner_id FROM users WHERE user_id=" + userId);
+        ResultSet rs = st.executeQuery("SELECT domain FROM partners WHERE id=(SELECT partner_id FROM users WHERE id=" + userId + ")");
         if(rs.next()) {
             domain = rs.getString(1);
         }
@@ -78,7 +99,7 @@ public class DBUtils {
         return domain;
     }
     
-    public String getContactPhoneNumber(String contactId) throws SQLException {
+    public static String getContactPhoneNumber(String contactId) throws SQLException {
         Connection c = getConnection();
         Statement st = c.createStatement();
         String phoneNumber = "";
@@ -94,11 +115,60 @@ public class DBUtils {
         return phoneNumber;        
     }
     
-    public String getCarrierSmtpGateway(String phoneNumber) {
+    public static String getCarrierSmtpGateway(String phoneNumber) throws IOException, SQLException {
+        String carrierName = getCarrierNameFromPhoneNumber(phoneNumber);
+        log.info("Looking up SMTP gateway for carrier[" + phoneNumber + "]: " + carrierName);
         
+        int gwId = lookupCarrierStatic(carrierName);
+        if(gwId == 0) {
+            gwId = lookupCarrierPostgres(carrierName);
+        }
+     
+        String gateway = "";        
+        if(gwId > 0) {
+            Connection c = getConnection();
+            Statement st = c.createStatement();
+            ResultSet rs = st.executeQuery("SELECT hostname FROM gateways WHERE id=" + String.valueOf(gwId));
+            if(rs.next()) {
+                gateway = rs.getString(1);
+            }
+            try {
+                c.close();
+            } catch (SQLException e) {
+                log.log(Level.SEVERE, "SQLException closing connection: " + e.getMessage(), e);                
+            }
+        }            
+        return gateway;
     }
     
-    private String getCarrierNameFromPhoneNumber(String phoneNumber) throws IOException {
+    private static int lookupCarrierStatic(String carrier) {
+        int gwId = 0;
+        for(String key : cMap.keySet()) {
+            if(carrier.toLowerCase().contains(key)) {
+                gwId = cMap.get(key);
+                break;
+            }
+        }
+        return gwId;
+    }
+    
+    private static int lookupCarrierPostgres(String carrier) throws SQLException {
+        int gwId = 0;
+        Connection c = getConnection();
+        Statement st = c.createStatement();
+        ResultSet rs = st.executeQuery("SELECT gateway_id FROM carriers WHERE LOWER(name) like '%" + carrier + "%'");
+        if(rs.next()) {
+            gwId = rs.getInt(1);
+        }
+        try {
+            c.close();
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, "SQLException closing connection: " + e.getMessage(), e);                            
+        }
+        return gwId;
+    }
+    
+    private static String getCarrierNameFromPhoneNumber(String phoneNumber) throws IOException {
         if(phoneNumber.startsWith("1")) {
             phoneNumber = phoneNumber.substring(1);
         }
@@ -106,7 +176,29 @@ public class DBUtils {
         HttpGet get = new HttpGet(LNP_URL + phoneNumber);
         HttpResponse response = client.execute(get);
         BufferedReader r = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-        return r.readLine().toLowerCase();
+        
+        String carrier = r.readLine();
+        if(carrier.length() == 0 || carrier.contains("not ported")) {
+            return getCarrierNameFromPhoneNumberNonLNP(phoneNumber);
+        }
+        return carrier.toLowerCase().replaceAll("\\n", "");
+    }
+    
+    private static String getCarrierNameFromPhoneNumberNonLNP(String phoneNumber) throws IOException {
+        // 1 should already have been stripped since this is never called directly
+        
+        HttpClient client = HttpClients.createDefault();
+        HttpGet get = new HttpGet(NO_LNP_URL + phoneNumber);
+        HttpResponse response = client.execute(get);
+        BufferedReader r = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+        
+        String carrier = r.readLine();
+        if(carrier.equals("NO")) {
+            carrier = "";
+        } else {
+            carrier = carrier.toLowerCase();
+        }
+        return carrier;
     }
     
     public static Connection getConnection() {
@@ -119,4 +211,5 @@ public class DBUtils {
         }
         return connection;
     }
+    
 }
