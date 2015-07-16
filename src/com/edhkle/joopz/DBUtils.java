@@ -178,6 +178,10 @@ public class DBUtils {
         BufferedReader r = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
         
         String carrier = r.readLine();
+        while( carrier.length() == 0 )
+            carrier = r.readLine();
+        
+        log.info("readline: " + carrier);
         if(carrier.length() == 0 || carrier.contains("not ported")) {
             return getCarrierNameFromPhoneNumberNonLNP(phoneNumber);
         }
