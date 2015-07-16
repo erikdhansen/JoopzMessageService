@@ -7,10 +7,8 @@ package com.edhkle.joopz;
 
 import java.io.StringReader;
 import javax.json.Json;
-import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
-import javax.json.JsonWriter;
 
 /**
  *

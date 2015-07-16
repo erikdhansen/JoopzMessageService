@@ -11,6 +11,6 @@ package com.edhkle.joopz;
  */
 public class RedisUtil {
     
-    public final static String MESSAGES_OUTGOING = "message:outgoing";
+    public final static String MESSAGES_OUTGOING = "messages:outgoing";
     
 }
