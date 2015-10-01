@@ -40,11 +40,11 @@ public class JoopzOutgoingMessageService implements Runnable {
         pgsql = null;
         try {
             pgsql = DriverManager.getConnection(PG_URL, PG_USER, PG_PASS);
-            if(pgsql.isValid(10)) {
-                log.info("PostgreSQL server is up!");
-            } else {
-                throw new JoopzMessageServiceException("Unable to communicate with Postgres database! Connection state is invalid!");
-            }
+            //if(pgsql.isValid(0)) {
+            //    log.info("PostgreSQL server is up!");
+            //} else {
+            //    throw new JoopzMessageServiceException("Unable to communicate with Postgres database! Connection state is invalid!");
+            //}
         } catch (SQLException e) {
             throw new JoopzMessageServiceException("Unable to communicate with Postgres database!", e);
         }
@@ -76,4 +76,10 @@ public class JoopzOutgoingMessageService implements Runnable {
         
     }
     
+    public void test() {
+        long queueSize = redis.llen(RedisUtil.MESSAGES_OUTGOING);
+        log.info("Testing Joopz outgoing message service.");
+        log.info("Redis queue messages::outgoing has " + queueSize + " entries");
+        log.info("Done testing Joopz outgoing message service.");
+    }
 }
