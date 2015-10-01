@@ -6,6 +6,7 @@
 package com.edhkle.joopz;
 
 import java.io.IOException;
+import javax.mail.Message;
 import javax.mail.MessagingException;
 
 /**
@@ -20,5 +21,5 @@ public interface JavamailMessageStore {
     }
     
     public void testReadMessages(int count) throws IOException, MessagingException;
-    
+    public Message[] getAllNewMessages() throws JoopzMessageServiceException;
 }

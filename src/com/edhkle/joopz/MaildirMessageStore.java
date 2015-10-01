@@ -28,16 +28,19 @@ public class MaildirMessageStore implements JavamailMessageStore {
     
     Properties properties = new Properties();
     final static String user = "joopz";
-    final static String url  = "maildir:/home/joopz/Maildir/";
+    final static String url  = "maildir:/home/ehansen/Maildir";
     
     public MaildirMessageStore() throws JoopzMessageServiceException {
         session = Session.getInstance(properties);
         try {
             store = session.getStore(new URLName(url));
             store.connect();
-            
-            // Test that mail store is readable -- that's sufficient for initialization
             inbox = store.getFolder("inbox");
+            //inbox = store.getDefaultFolder();
+            log.info("Retrieved default folder from mail store: " + inbox.getFullName());
+            //log.info("Default folder contains folder:" + inbox.list()[0].getName());
+            //inbox = inbox.getFolder(inbox.list()[0].getName());
+            // Test that mail store is readable -- that's sufficient for initialization
             inbox.open(Folder.READ_WRITE);
         } catch (Exception e) {
             Logger.getLogger(MaildirMessageStore.class.getName()).log(Level.SEVERE, null, e);
@@ -46,11 +49,35 @@ public class MaildirMessageStore implements JavamailMessageStore {
     }
     
     @Override
+    public Message[] getAllNewMessages() throws JoopzMessageServiceException {
+        if(!inbox.isOpen()) {
+            try {
+                inbox.open(Folder.READ_WRITE);
+            } catch (MessagingException e) {
+                throw new JoopzMessageServiceException("Unable to open INBOX!  Caught MessagingException!", e);
+            }
+        }
+        try {
+            log.info(inbox.getFullName() + " open for read-write access (UNREAD msg count = " + inbox.getUnreadMessageCount() + ")");
+        } catch (MessagingException ex) {
+            Logger.getLogger(MaildirMessageStore.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        Message[] msgs;
+        try {
+            msgs = inbox.getMessages();
+            log.info("Retrieved " + msgs.length + " email messages for processing");
+        } catch (MessagingException e) {
+            throw new JoopzMessageServiceException("Unable to retrieve messages from mail store! (" + inbox.getName() + ")", e);
+        }
+        return msgs;
+    }
+    
+    @Override
     public void testReadMessages(int count) throws IOException, MessagingException {
         if(!inbox.isOpen()) {
-            inbox.open(Folder.READ_ONLY);
+            inbox.open(Folder.READ_WRITE);
         }
-        log.info("INBOX opened successfully as read-only (msg count = " + inbox.getMessageCount() + ")");
+        log.info(inbox.getFullName() + " open as read-write (msg count = " + inbox.getMessageCount() + ")");
         Message[] messages = inbox.getMessages();
         log.info("Retrieved " + messages.length + " messages from INBOX");
         for(Message m : messages) {

@@ -6,6 +6,7 @@
 package com.edhkle.joopz;
 
 import java.io.IOException;
+import javax.mail.Message;
 import javax.mail.MessagingException;
 
 /**
@@ -16,6 +17,11 @@ public class MboxMessageStore implements JavamailMessageStore {
 
     @Override
     public void testReadMessages(int count) throws IOException, MessagingException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Message[] getAllNewMessages() throws JoopzMessageServiceException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
