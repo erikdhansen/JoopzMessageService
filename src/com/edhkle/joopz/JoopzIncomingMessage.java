@@ -45,7 +45,7 @@ public class JoopzIncomingMessage {
                 throw new JoopzMessageServiceException("Invalid (unparseable) Joopz Message Header: To: " + to);
             }
             destPhones.add(to.substring(0, to.indexOf(".")));
-            uniqueId = to.substring(to.indexOf(".") + 1);
+            uniqueId = to.substring(to.indexOf(".") + 1, to.indexOf("@"));
             subject = m.getSubject();
             
             // Read message body
