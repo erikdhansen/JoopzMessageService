@@ -13,11 +13,14 @@ import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.URLName;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import javax.mail.search.FlagTerm;
 /**
  *
@@ -116,7 +119,11 @@ public class MaildirMessageStore implements JavamailMessageStore {
             m.addRecipient(Message.RecipientType.TO, new InternetAddress("16037597215.911b@joopzy"));
             m.setFrom("19787713151@vtext.com");
             m.setSubject("SMS Subject");
-            m.setText("SMS Text Content\nSent by joopz.com");
+            Multipart mp = new MimeMultipart("alternative");
+            MimeBodyPart bp = new MimeBodyPart();
+            bp.setText("SMS Text Content\nSent by joopz.com", "utf-8");
+            mp.addBodyPart(bp);
+            m.setContent(mp);
             msgs[0] = m;
             m = new MimeMessage(session);
             m.addRecipient(Message.RecipientType.TO, new InternetAddress("19735257291.27e3@joopzy"));
