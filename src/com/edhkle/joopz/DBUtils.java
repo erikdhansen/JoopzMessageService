@@ -216,4 +216,20 @@ public class DBUtils {
         return connection;
     }
     
+    public static Map<String,String> getContactFromUniqueId(String uniqueId) throws SQLException {
+        Map<String,String> data = new HashMap<>();
+        Connection c = getConnection();
+        Statement st = c.createStatement();
+        ResultSet rs = st.executeQuery("SELECT id,user_id,phone_number,uniq_id,name,deleted FROM contacts WHERE uniq_id='" + uniqueId + "'");
+        if(rs.next()) {
+            data.put("id", String.valueOf(rs.getInt("id")));
+            data.put("user_id", String.valueOf(rs.getInt("user_id")));
+            data.put("phone_number", rs.getString("phone_number"));
+            data.put("uniq_id", rs.getString("uniq_id"));
+            data.put("name", rs.getString("name"));
+            data.put("deleted", String.valueOf(rs.getBoolean("deleted")));
+        }
+        log.info("getContactFromUniqueId: uniqueId=" + uniqueId + " contact info=" + data.toString());
+        return data;
+    }
 }

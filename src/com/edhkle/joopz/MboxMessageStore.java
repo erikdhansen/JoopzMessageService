@@ -6,8 +6,11 @@
 package com.edhkle.joopz;
 
 import java.io.IOException;
+import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Store;
 
 /**
  *
@@ -22,6 +25,21 @@ public class MboxMessageStore implements JavamailMessageStore {
 
     @Override
     public Message[] getAllNewMessages() throws JoopzMessageServiceException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Session getSession() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Store getStore() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Folder getInbox() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

@@ -27,7 +27,7 @@ public class JoopzMessageService {
     public void startJoopzServices() {
         log.info("Starting up incoming/outgoing services...");
         (new Thread(incoming)).start();
-        (new Thread(outgoing)).start();
+        //(new Thread(outgoing)).start();
     }
     
     public void testJoopzService(String serviceType) {

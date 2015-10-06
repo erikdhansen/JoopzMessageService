@@ -5,10 +5,14 @@
  */
 package com.edhkle.joopz;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.mail.Address;
 import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
 /**
@@ -21,7 +25,7 @@ public class JoopzIncomingMessage {
     Message m;
     String sourcePhone;
     String uniqueId;
-    boolean groupDestination = false;
+    boolean group = false;
     List<String> destPhones = new LinkedList<>();
     String subject;
     String body;
@@ -31,13 +35,17 @@ public class JoopzIncomingMessage {
             // Save the email message itself...probably not necessary...maybe
             // just the messages ID?
             this.m = m;
-            
+
+            log.info("Converting MailMessage -> JoopzIncomingMessage: " + mailMessageToString(m));
             // Read From/To/Subject
             String from = m.getFrom()[0].toString();
             sourcePhone = from.substring(0, from.indexOf("@"));
             String to = m.getAllRecipients()[0].toString();
+            if(to.indexOf(".") == -1) {
+                throw new JoopzMessageServiceException("Invalid (unparseable) Joopz Message Header: To: " + to);
+            }
             destPhones.add(to.substring(0, to.indexOf(".")));
-            uniqueId = from.substring(to.indexOf(".") + 1);
+            uniqueId = to.substring(to.indexOf(".") + 1);
             subject = m.getSubject();
             
             // Read message body
@@ -72,12 +80,12 @@ public class JoopzIncomingMessage {
         this.uniqueId = uniqueId;
     }
 
-    public boolean isGroupDestination() {
-        return groupDestination;
+    public boolean isGroup() {
+        return group;
     }
 
-    public void setGroupDestination(boolean groupDestination) {
-        this.groupDestination = groupDestination;
+    public void setGroup(boolean groupDestination) {
+        this.group = groupDestination;
     }
 
     public List<String> getDestPhones() {
@@ -104,5 +112,30 @@ public class JoopzIncomingMessage {
         this.body = body;
     }
     
+    public static String mailMessageToString(Message m) {
+        StringBuilder sb = new StringBuilder();
+        String data = "";
+        try {
+            for(Address recip : m.getAllRecipients()) {
+                sb.append(recip.toString()).append(";");
+            }
+            String to   = sb.toString();
+            sb = new StringBuilder();
+            for(Address sender : m.getFrom()) {
+                sb.append(sender).append(";");
+            }
+            String from = sb.toString();
+            String subject = m.getSubject();
+            String body = m.getContent().toString();
+            data = "Message[" + m.getMessageNumber() + "] FROM: " + from + "  TO: " + to + " Subject: " + subject + " Body: " + body;
+        } catch (IOException | MessagingException e) {
+            log.log(Level.SEVERE, "Exception dumping mail message to string: " + m.toString(), e);
+        }
+        return data;
+    }
     
+    @Override
+    public String toString() {
+        return "IncomingMessage: SMS: Source Phone=" + sourcePhone + " DestUniqueID=" + uniqueId + " group?= " + group + " subject=" + subject + " msg=" + body;
+    }
 }

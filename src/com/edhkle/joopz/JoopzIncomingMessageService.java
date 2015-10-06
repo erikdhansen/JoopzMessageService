@@ -5,11 +5,15 @@
  */
 package com.edhkle.joopz;
 
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.mail.Flags.Flag;
 import javax.mail.Message;
+import javax.mail.MessagingException;
 
 /**
  *
@@ -43,20 +47,33 @@ public class JoopzIncomingMessageService implements Runnable {
                 try {
                     msgs = msgStore.getAllNewMessages();
                     List<JoopzIncomingMessage> incomingMsgs = new LinkedList<>();
-                    for(Message m : msgs) {
-                        incomingMsgs.add(new JoopzIncomingMessage(m));
-                    }
-                    log.info("Processed " + msgs.length + " emails into " + incomingMsgs.size() + " Joopz Incoming Messages");
                     int good = 0;
-                    int bad = 0;
+                    int bad  = 0;
+                    for(Message m : msgs) {
+                        try {
+                            JoopzIncomingMessage im = new JoopzIncomingMessage(m);
+                            incomingMsgs.add(new JoopzIncomingMessage(m));
+                            good++;
+                        } catch (JoopzMessageServiceException e) {
+                            log.log(Level.WARNING, "Failed to parse Mail Message into JoopzIncomingMessage", e);
+                            log.warning("Marking message[" + m.getMessageNumber() + "] as SEEN");
+                            bad++;
+                            try {
+                                m.setFlag(Flag.SEEN, true);
+                                m.setFlag(Flag.DELETED, true);
+                                m.saveChanges();
+                            } catch (MessagingException ex) {
+                                Logger.getLogger(JoopzIncomingMessageService.class.getName()).log(Level.SEVERE, null, ex);
+                                log.severe("Failed to set SEEN flag on message[" + m.getMessageNumber());
+                            }
+                        }
+                    }
+                    log.info("Done processing incoming emails.  Results: Total=" + msgs.length + " Good=" + good + " Bad=" + bad);
                     for(JoopzIncomingMessage im : incomingMsgs) {
                         try {
                             processJoopzIncomingMessage(im);
-                            good++;
                         } catch (JoopzMessageServiceException e) {
                             log.log(Level.WARNING, "Caught JoopzMessageServiceException processing incoming message", e);
-                            log.warning("Problem Incoming Message:\n" + im.toString());
-                            bad++;
                       }
                     }
                     log.info("Incoming Message Processing Cycle complete.  Processed " + incomingMsgs.size() + " incoming messages.  Good=" + good + "  Bad=" + bad);                    
@@ -74,7 +91,13 @@ public class JoopzIncomingMessageService implements Runnable {
     }
     
     private void processJoopzIncomingMessage(JoopzIncomingMessage im) throws JoopzMessageServiceException {
-        
+        log.info("*** processIncomingJoopzMessage: " + im.toString());
+        try {
+            Map<String,String> contact = DBUtils.getContactFromUniqueId(im.getUniqueId());
+            log.info("Retrieved Contact Info: " + contact.toString());
+        } catch (SQLException e) {
+            throw new JoopzMessageServiceException("Failed to convert uniqueId=" + im.getUniqueId() + " into a contact!", e);
+        }
     }
     
     public void test() {

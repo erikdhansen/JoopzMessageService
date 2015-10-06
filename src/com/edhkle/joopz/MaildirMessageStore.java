@@ -9,12 +9,14 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.URLName;
+import javax.mail.search.FlagTerm;
 
 /**
  *
@@ -64,7 +66,9 @@ public class MaildirMessageStore implements JavamailMessageStore {
         }
         Message[] msgs;
         try {
-            msgs = inbox.getMessages();
+            Flags seen = new Flags(Flags.Flag.SEEN);
+            FlagTerm unseen = new FlagTerm(seen, false);
+            msgs = inbox.search(unseen);
             log.info("Retrieved " + msgs.length + " email messages for processing");
         } catch (MessagingException e) {
             throw new JoopzMessageServiceException("Unable to retrieve messages from mail store! (" + inbox.getName() + ")", e);
@@ -86,5 +90,17 @@ public class MaildirMessageStore implements JavamailMessageStore {
         }
         log.info("Done reading messages");
         log.info("Incoming message service test complete.");
+    }
+    
+    public Session getSession() {
+        return session;
+    }
+    
+    public Store getStore() {
+        return store;
+    }
+    
+    public Folder getInbox() {
+        return inbox;
     }
 }
