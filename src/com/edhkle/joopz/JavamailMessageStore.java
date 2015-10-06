@@ -25,6 +25,7 @@ public interface JavamailMessageStore {
     
     public void testReadMessages(int count) throws IOException, MessagingException;
     public Message[] getAllNewMessages() throws JoopzMessageServiceException;
+    public Message[] getAllNewMessagesDebug() throws JoopzMessageServiceException;
     public Session getSession();
     public Store getStore();
     public Folder getInbox();

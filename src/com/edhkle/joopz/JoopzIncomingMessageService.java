@@ -45,7 +45,7 @@ public class JoopzIncomingMessageService implements Runnable {
             } else {
                 Message[] msgs;
                 try {
-                    msgs = msgStore.getAllNewMessages();
+                    msgs = msgStore.getAllNewMessagesDebug();
                     List<JoopzIncomingMessage> incomingMsgs = new LinkedList<>();
                     int good = 0;
                     int bad  = 0;

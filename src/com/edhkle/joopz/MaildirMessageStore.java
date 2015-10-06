@@ -16,8 +16,9 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.URLName;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.mail.search.FlagTerm;
-
 /**
  *
  * @author ehansen
@@ -92,15 +93,46 @@ public class MaildirMessageStore implements JavamailMessageStore {
         log.info("Incoming message service test complete.");
     }
     
+    @Override
     public Session getSession() {
         return session;
     }
     
+    @Override
     public Store getStore() {
         return store;
     }
     
+    @Override
     public Folder getInbox() {
         return inbox;
+    }
+    
+    @Override
+    public Message[] getAllNewMessagesDebug() {
+        Message[] msgs = new Message[3];
+        try {
+            MimeMessage m = new MimeMessage(session);
+            m.addRecipient(Message.RecipientType.TO, new InternetAddress("16037597215.911b@joopzy"));
+            m.setFrom("19787713151@vtext.com");
+            m.setSubject("SMS Subject");
+            m.setText("SMS Text Content\nSent by joopz.com");
+            msgs[0] = m;
+            m = new MimeMessage(session);
+            m.addRecipient(Message.RecipientType.TO, new InternetAddress("19735257291.27e3@joopzy"));
+            m.setFrom("16039434333@tmomail.com");
+            m.setSubject("SMS Subject");
+            m.setText("SMS Text Content\nSent by joopz.com");
+            msgs[1] = m;
+            m = new MimeMessage(session);
+            m.addRecipient(Message.RecipientType.TO, new InternetAddress("19782707839.ebb3@joopzy"));
+            m.setFrom("16039434333@tmomail.com");
+            m.setSubject("SMS Subject");
+            m.setText("SMS Text Content\nSent by joopz.com");
+            msgs[2] = m;
+        } catch (MessagingException e) {
+            log.log(Level.SEVERE, "Caught Messaging Exception building debug messages!", e);
+        }
+        return msgs;
     }
 }
