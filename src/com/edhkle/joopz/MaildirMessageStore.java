@@ -129,13 +129,21 @@ public class MaildirMessageStore implements JavamailMessageStore {
             m.addRecipient(Message.RecipientType.TO, new InternetAddress("19735257291.27e3@joopzy"));
             m.setFrom("16039434333@tmomail.com");
             m.setSubject("SMS Subject");
-            m.setText("SMS Text Content\nSent by joopz.com");
+            mp = new MimeMultipart("alternative");
+            bp = new MimeBodyPart();
+            bp.setText("SMS Text Content\nSent by joopz.com");
+            mp.addBodyPart(bp);
+            m.setContent(mp);
             msgs[1] = m;
             m = new MimeMessage(session);
             m.addRecipient(Message.RecipientType.TO, new InternetAddress("19782707839.ebb3@joopzy"));
             m.setFrom("16039434333@tmomail.com");
             m.setSubject("SMS Subject");
-            m.setText("SMS Text Content\nSent by joopz.com");
+            mp = new MimeMultipart("alternative");
+            bp = new MimeBodyPart();
+            bp.setText("SMS Text Content\nSent by joopz.com");
+            mp.addBodyPart(bp);
+            m.setContent(mp);
             msgs[2] = m;
         } catch (MessagingException e) {
             log.log(Level.SEVERE, "Caught Messaging Exception building debug messages!", e);
