@@ -52,7 +52,14 @@ public class JoopzIncomingMessageService implements Runnable {
                     for(Message m : msgs) {
                         try {
                             JoopzIncomingMessage im = new JoopzIncomingMessage(m);
-                            incomingMsgs.add(new JoopzIncomingMessage(m));
+                            try {
+                                m.setFlag(Flag.SEEN, true);
+                                m.setFlag(Flag.DELETED, true);
+                                m.saveChanges();
+                            } catch (MessagingException ex) {
+                                Logger.getLogger(JoopzIncomingMessageService.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                            incomingMsgs.add(im);
                             good++;
                         } catch (JoopzMessageServiceException e) {
                             log.log(Level.WARNING, "Failed to parse Mail Message into JoopzIncomingMessage", e);

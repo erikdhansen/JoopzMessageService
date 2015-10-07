@@ -232,4 +232,16 @@ public class DBUtils {
         log.info("getContactFromUniqueId: uniqueId=" + uniqueId + " contact info=" + data.toString());
         return data;
     }
+    
+    public static String getUserIdFromPhoneNumber(String phoneNumber) throws SQLException {
+        Map<String,String> data = new HashMap<>();
+        Connection c = getConnection();
+        Statement st = c.createStatement();
+        ResultSet rs = st.executeQuery("SELECT id FROM user WHERE phone_number='" + phoneNumber + "'");
+        String userId = null;
+        if(rs.next()) {
+            userId = String.valueOf(rs.getInt("id"));
+        }
+        return userId;
+    }
 }
